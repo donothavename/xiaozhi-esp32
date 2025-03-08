@@ -168,6 +168,8 @@ private:
         thing_manager.AddThing(iot::CreateThing("Speaker"));
         thing_manager.AddThing(iot::CreateThing("Backlight"));
         thing_manager.AddThing(iot::CreateThing("Battery"));
+        thing_manager.AddThing(iot::CreateThing("ColorLamp"));
+        thing_manager.AddThing(iot::CreateThing("EspColorLamp"));
     }
 
 public:
