@@ -56,9 +56,6 @@ namespace iot
                     }
                     switch (lamp->style_)
                     {
-                    case 0:
-                        led_strip_clear(lamp->led_strip_);
-                        break;
                     case 1:
                         lamp->rainbowAnimation(progress);
                         break;
@@ -73,7 +70,6 @@ namespace iot
                 .skip_unhandled_events = false,
             };
             ESP_ERROR_CHECK(esp_timer_create(&timer_args, &ColorLamp_timer_));
-            ESP_ERROR_CHECK(esp_timer_start_periodic(ColorLamp_timer_, 10000));
         }
 
         void HsvToRgb(float h, float s, float v)
@@ -145,16 +141,23 @@ namespace iot
         {
             InitializeGpio(GPIO_NUM_48);
             methods_.AddMethod("SetSpeed", "设置彩灯变化速度", ParameterList({
-                                                                   Parameter("speed", "0-9的整数，0关闭，1最慢，9最快", kValueTypeNumber, true),
+                                                                   Parameter("speed", "1-9的整数,1最慢，9最快", kValueTypeNumber, true),
                                                                }),
                                [this](const ParameterList &parameters)
                                {
                                    speed_ = parameters["speed"].number() + 2;
+                                   esp_timer_stop(ColorLamp_timer_);
+                                   esp_timer_start_periodic(ColorLamp_timer_, 10000);
                                });
             methods_.AddMethod("SetStyle", "设置彩灯样式", ParameterList({Parameter("style", "返回0-2,对应样式为1:单色变换,2:呼吸变换,0:沉寂熄灭(关闭)", kValueTypeNumber, true)}),
                                [this](const ParameterList &parameters)
                                {
                                    style_ = parameters["style"].number();
+                                   esp_timer_stop(ColorLamp_timer_);
+                                   if (style_ != 0)
+                                       esp_timer_start_periodic(ColorLamp_timer_, 10000);
+                                   else
+                                       led_strip_clear(led_strip_);
                                });
         }
     };
